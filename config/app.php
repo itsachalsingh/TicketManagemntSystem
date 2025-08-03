@@ -123,4 +123,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'hmimedia_sms_api_username' => env('HMIMEDIA_SMS_API_USERNAME'),
+    'hmimedia_sms_api_password' => env('HMIMEDIA_SMS_API_PASSWORD'),
+    'hmimedia_sms_api_entity_id' => env('HMIMEDIA_SMS_API_ENTITY_ID'),
+    'hmimedia_sms_template_id' => env('HMIMEDIA_SMS_TEMPLATE_ID'),
+
 ];
