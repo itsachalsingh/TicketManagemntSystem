@@ -35,11 +35,19 @@ export default function TicketForm() {
         sub_category: '',
     });
 
+    interface User {
+        name?: string;
+        email?: string;
+        phone?: string;
+        role_id?: number;
+        // add other properties as needed
+    }
+
     const { auth } = usePage().props;
-    const user = auth.user;
+    const user = auth.user as User;
 
     useEffect(() => {
-        if (user) {
+        if (user && user.role_id === 4) { // Assuming role_id 2 is for users
             setData('name', user.name || '');
             setData('email', user.email || '');
             setData('phone', user.phone || '');
