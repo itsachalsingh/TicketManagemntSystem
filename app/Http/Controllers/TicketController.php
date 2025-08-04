@@ -12,6 +12,7 @@ use Illuminate\Validation\Rule;
 use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Http;
 
 
 
@@ -64,12 +65,14 @@ class TicketController extends Controller
             'sub_category' => 'nullable|string|max:100',
         ])->validate();
 
-        // Determine which user ID to assign to the ticket
+
+
+
         if ($authUser->role_id == 4) {
-            // Role ID 4: use current logged-in user ID
+
             $userId = $authUser->id;
 
-            // Update missing user details if not already saved
+
             foreach (['name', 'email', 'phone'] as $field) {
                 if (empty($authUser->$field) && $request->filled($field)) {
                     $authUser->$field = $request->input($field);
@@ -80,31 +83,100 @@ class TicketController extends Controller
                 $authUser->save();
             }
         } else {
-            // For other roles: create or find the user based on email
+
             $user = \App\Models\User::firstOrCreate(
                 ['email' => $validated['email']],
                 [
                     'name' => $validated['name'],
                     'phone' => $validated['phone'],
-                    'password' => bcrypt(Str::random(10)), // generate random password
-                    'role_id' => 4, // assign 'user' role
+                    'password' => bcrypt(Str::random(10)),
+                    'role_id' => 4,
                 ]
             );
 
             $userId = $user->id;
+
+                $sender     = 'UKITDA';
+                $username   = config('app.hmimedia_sms_api_username');
+                $password   = config('app.hmimedia_sms_api_password');
+                $eid        = config('app.hmimedia_sms_api_entity_id');
+                $templateId = '1307175429746978514';
+
+
+                $message = "UKUCC-Welcome {$user->phone}! Your account has been created successfully.";
+                $encodedMessage = rawurlencode($message);
+
+
+                $apiUrl = "https://itda.hmimedia.in/pushsms.php?" .
+                    http_build_query([
+                        'username'     => $username,
+                        'api_password' => $password,
+                        'sender'       => $sender,
+                        'to'           => $user->phone,
+                        'priority'     => '11',
+                        'e_id'         => $eid,
+                        't_id'         => $templateId,
+                    ]) .
+                    "&message={$encodedMessage}";
+
+                try {
+                    $response = Http::withoutVerifying()->get($apiUrl);
+                    $result = $response->body(); // You may log or check $result
+                } catch (\Exception $e) {
+                    // Log error instead of returning a response (this is a FormRequest class)
+                    \Log::error('Failed to send welcome SMS: ' . $e->getMessage());
+                }
         }
 
         // Create the ticket
         $ticket = \App\Models\Ticket::create([
             'user_id' => $userId,
-            'title' => $validated['subject'],
+            'subject' => $validated['subject'],
             'description' => $validated['description'],
             'priority' => $validated['priority'],
             'category' => $validated['category'],
             'sub_category' => $validated['sub_category'] ?? null,
+            'assigned_to' => '2',
+            'source' => 'web',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'status' => 'open',
+            'due_date' => now()->addDays(3),
         ]);
 
-        return redirect()->route('tickets.show', $ticket->id)->with('success', 'Ticket created successfully.');
+
+                $sender     = 'UKITDA';
+                $username   = config('app.hmimedia_sms_api_username');
+                $password   = config('app.hmimedia_sms_api_password');
+                $eid        = config('app.hmimedia_sms_api_entity_id');
+                $templateId = '1307175429633438028';
+
+                // Create a welcome message for the new user
+                $message = "UKUCC-Your ticket {$ticket->ticket_number} has been created. Our team will contact you shortly.";
+                $encodedMessage = rawurlencode($message);
+
+                // Prepare SMS API config values
+                $apiUrl = "https://itda.hmimedia.in/pushsms.php?" .
+                    http_build_query([
+                        'username'     => $username,
+                        'api_password' => $password,
+                        'sender'       => $sender,
+                        'to'           => $authUser->phone,
+                        'priority'     => '11',
+                        'e_id'         => $eid,
+                        't_id'         => $templateId,
+                    ]) .
+                    "&message={$encodedMessage}";
+
+                try {
+                    $response = Http::withoutVerifying()->get($apiUrl);
+                    $result = $response->body(); // You may log or check $result
+                } catch (\Exception $e) {
+                    // Log error instead of returning a response (this is a FormRequest class)
+                    \Log::error('Failed to send welcome SMS: ' . $e->getMessage());
+                }
+
+        return redirect()->route('home')->with('success', 'Ticket created successfully.');
     }
 
     public function edit($id)

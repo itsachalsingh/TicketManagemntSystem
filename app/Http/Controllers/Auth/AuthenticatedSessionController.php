@@ -80,9 +80,8 @@ class AuthenticatedSessionController extends Controller
         $username   = config('app.hmimedia_sms_api_username');
         $password   = config('app.hmimedia_sms_api_password');
         $eid        = config('app.hmimedia_sms_api_entity_id');
-        $templateId = config('app.hmimedia_sms_template_id');
-
-        $message = "UKUCC- $otp is your one time password (OTP) for mobile number verification.";
+        $templateId = '1307175429742401534';
+        $message = "UKUCC-Your login OTP is $otp. Do not share it with anyone. Valid for 10 minutes.";
         $encodedMessage = rawurlencode($message); // ✅ single encoding with %20, %28, %29
 
         $apiUrl = "https://itda.hmimedia.in/pushsms.php?" .

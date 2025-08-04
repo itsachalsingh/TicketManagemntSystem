@@ -49,7 +49,7 @@ class Ticket extends Model
         static::creating(function ($ticket) {
             $lastTicket = self::orderBy('id', 'desc')->first();
             $nextId = $lastTicket ? $lastTicket->id + 1 : 1;
-            $ticket->ticket_number = 'UCC-' . date('Ymd') . '-' . sprintf('%04d', $nextId);
+            $ticket->ticket_number = 'UCC-' . date('ymd') . '-' . sprintf('%04d', $nextId);
         });
 
     }

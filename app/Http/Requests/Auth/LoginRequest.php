@@ -11,38 +11,29 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class LoginRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Validation rules: Require email+password or phone+otp
-     */
     public function rules(): array
     {
         return [
-            'email' => ['nullable', 'string', 'email', 'required_without:phone'],
+            'email'    => ['nullable', 'string', 'email', 'required_without:phone'],
             'password' => ['nullable', 'string', 'required_with:email'],
-            'phone' => ['nullable', 'string', 'required_without:email'],
-            'otp' => ['nullable', 'string', 'required_with:phone'],
+            'phone'    => ['nullable', 'string', 'required_without:email'],
+            'otp'      => ['nullable', 'string', 'required_with:phone'],
             'remember' => ['sometimes', 'boolean'],
         ];
     }
 
-    /**
-     * Attempt to authenticate the request's credentials.
-     */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
-
 
         if ($this->filled('email') && $this->filled('password')) {
             if (!Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
@@ -52,14 +43,15 @@ class LoginRequest extends FormRequest
                     'email' => trans('auth.failed'),
                 ]);
             }
+
+            RateLimiter::clear($this->throttleKey());
+            return;
         }
 
-
-        elseif ($this->filled('phone') && $this->filled('otp')) {
-            $phone = $this->input('phone');
+        if ($this->filled('phone') && $this->filled('otp')) {
+            $phone    = $this->input('phone');
             $otpInput = $this->input('otp');
 
-            // Fetch latest OTP for the mobile
             $otpRecord = DB::table('otps')
                 ->where('mobile', $phone)
                 ->orderByDesc('created_at')
@@ -69,40 +61,67 @@ class LoginRequest extends FormRequest
                 RateLimiter::hit($this->throttleKey());
 
                 throw ValidationException::withMessages([
-                    'otp' => trans('auth.failed'), // You can customize this message
+                    'otp' => trans('auth.failed'),
                 ]);
             }
 
-            // Check if user already exists
             $user = User::where('phone', $phone)->first();
 
             if (!$user) {
-                // Auto-register new user
                 $user = User::create([
-                    'phone' => $phone,
-                    'name' => 'User ' . $phone,
+                    'phone'    => $phone,
+                    'name'     => 'User ' . $phone,
                     'password' => Hash::make(Str::random(10)),
-                    'role_id' => 4,
-                    'email' => null,
+                    'role_id'  => 4,
+                    'email'    => null,
                 ]);
+
+                $sender     = 'UKITDA';
+                $username   = config('app.hmimedia_sms_api_username');
+                $password   = config('app.hmimedia_sms_api_password');
+                $eid        = config('app.hmimedia_sms_api_entity_id');
+                $templateId = '1307175429746978514';
+
+                // Create a welcome message for the new user
+                $message = "UKUCC-Welcome {$user->phone}! Your account has been created successfully.";
+                $encodedMessage = rawurlencode($message);
+
+                // Prepare SMS API config values
+                $apiUrl = "https://itda.hmimedia.in/pushsms.php?" .
+                    http_build_query([
+                        'username'     => $username,
+                        'api_password' => $password,
+                        'sender'       => $sender,
+                        'to'           => $phone,
+                        'priority'     => '11',
+                        'e_id'         => $eid,
+                        't_id'         => $templateId,
+                    ]) .
+                    "&message={$encodedMessage}";
+
+                try {
+                    $response = Http::withoutVerifying()->get($apiUrl);
+                    $result = $response->body(); // You may log or check $result
+                } catch (\Exception $e) {
+                    // Log error instead of returning a response (this is a FormRequest class)
+                    \Log::error('Failed to send welcome SMS: ' . $e->getMessage());
+                }
+
+
             }
 
             Auth::login($user, $this->boolean('remember'));
+
+            RateLimiter::clear($this->throttleKey());
+            return;
         }
 
-        // === Invalid fallback ===
-        else {
-            throw ValidationException::withMessages([
-                'login' => 'Invalid login credentials.',
-            ]);
-        }
-
-        RateLimiter::clear($this->throttleKey());
+        // Fallback: no valid input combination
+        throw ValidationException::withMessages([
+            'login' => 'Invalid login credentials.',
+        ]);
     }
 
-    /**
-     * Ensure the login request is not rate limited.
-     */
     public function ensureIsNotRateLimited(): void
     {
         if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
@@ -121,9 +140,6 @@ class LoginRequest extends FormRequest
         ]);
     }
 
-    /**
-     * Get the rate limiting throttle key for the request.
-     */
     public function throttleKey(): string
     {
         $identifier = $this->filled('email') ? $this->string('email') : $this->string('phone');

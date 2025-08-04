@@ -18,8 +18,8 @@ class AdminSeeder extends Seeder
             ['name' => 'Super Admin', 'password' => bcrypt('password'), 'phone' => '1234567890', 'role_id' => 1]
 
         );
-        User::firstOrCreate(['email' => 'admin@example.com'], ['name' => 'Admin', 'password' => bcrypt('password'), 'phone' => '1234567890', 'role_id' => 2]);
-        User::firstOrCreate(['email' => 'support_agent@example.com'], ['name' => 'Support Agent', 'password' => bcrypt('password'), 'phone' => '1234567890', 'role_id' => 3]);
-        User::firstOrCreate(['email' => 'user@example.com'], ['name' => 'User', 'password' => bcrypt('password'), 'phone' => '1234567890', 'role_id' => 4]);
+        User::firstOrCreate(['email' => 'admin@example.com'], ['name' => 'Admin', 'password' => bcrypt('password'), 'phone' => '1234567891', 'role_id' => 2]);
+        User::firstOrCreate(['email' => 'support_agent@example.com'], ['name' => 'Support Agent', 'password' => bcrypt('password'), 'phone' => '1234567892', 'role_id' => 3]);
+        User::firstOrCreate(['email' => 'user@example.com'], ['name' => 'User', 'password' => bcrypt('password'), 'phone' => '1234567893', 'role_id' => 4]);
     }
 }

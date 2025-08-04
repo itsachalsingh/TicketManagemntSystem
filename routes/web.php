@@ -44,11 +44,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tickets/{ticket}/edit', [TicketController::class, 'edit'])->name('tickets.edit');
     Route::put('/tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update');
     Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
+    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
 });
 
 Route::get('login', function () {
     return redirect()->route('home');
 })->name('login');
+
+Route::resource('categories', CategoryController::class);
 
 require __DIR__.'/auth.php';
 
