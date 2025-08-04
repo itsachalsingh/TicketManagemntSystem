@@ -29,7 +29,7 @@ export default function TicketIndex({ tickets }: TicketIndexProps) {
 
     return (
 
-         <AuthenticatedLayout
+        <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
                     Dashboard
@@ -72,37 +72,68 @@ export default function TicketIndex({ tickets }: TicketIndexProps) {
                         ) : (
                             <div className="grid gap-4">
                                 {filtered.map(ticket => (
-                                    <div key={ticket.id} className="border border-gray-200 rounded-md p-4 hover:shadow transition">
-                                        <div className="flex justify-between items-center">
+                                    <div
+                                        key={ticket.id}
+                                        className="bg-white border rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-5"
+                                    >
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                            {/* Left Column: Ticket Info */}
                                             <div>
-                                                <p className="text-sm text-gray-400">#{ticket.ticket_number}</p>
-                                                <h3 className="text-lg font-medium">{ticket.subject}</h3>
-                                                {new Date(ticket.created_at).toLocaleDateString('en-GB')}
+
+
+                                                <h4 className="text-sm font-semibold text-gray-500 mt-2">Ticket Number</h4>
+                                                <p className="text-sm text-gray-600">#{ticket.ticket_number}</p>
+
+                                                <h4 className="text-sm font-semibold text-gray-500 mt-2">Created At</h4>
+                                                <p className="text-sm text-gray-600">
+                                                    {new Date(ticket.created_at).toLocaleString('en-GB', {
+                                                        timeZone: 'Asia/Kolkata',
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                        hour12: true,
+                                                    })}
+                                                </p>
                                             </div>
-                                            <div className='flex items-center gap-2'>
-                                                <span className="text-sm text-gray-500">
+
+                                            {/* Middle Column: Description */}
+                                            <div>
+                                                <h4 className="text-sm font-semibold text-gray-500">Subject</h4>
+                                                <p className="text-base font-medium text-gray-800">{ticket.subject}</p>
+                                                <h4 className="text-sm font-semibold text-gray-500">Description</h4>
+                                                <p className="text-sm text-gray-700 mt-1">
                                                     {ticket.description.length > 50
                                                         ? `${ticket.description.substring(0, 50)}...`
                                                         : ticket.description}
-                                                </span>
+                                                </p>
                                             </div>
-                                            <div className="text-right">
-                                                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                                                    ticket.status === 'open' ? 'bg-green-100 text-green-800' :
-                                                    ticket.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
-                                                    ticket.status === 'resolved' ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                    {ticket.status.replace('_', ' ')}
-                                                </span>
-                                                <div className="mt-2 flex gap-2 text-sm text-indigo-600">
-                                                    <Link href={route('tickets.show', ticket.id)} className="hover:underline">View</Link>
+
+                                            {/* Right Column: Status + Action */}
+                                            <div className="flex flex-col items-start sm:items-end justify-between gap-4">
+                                                <div>
+                                                    <h4 className="text-sm font-semibold text-gray-500">Status</h4>
+                                                    <span className={`text-xs font-bold px-3 py-1 rounded-full capitalize inline-block mt-1 ${ticket.status === 'open' ? 'bg-green-100 text-green-700' :
+                                                            ticket.status === 'in_progress' ? 'bg-yellow-100 text-yellow-700' :
+                                                                ticket.status === 'resolved' ? 'bg-blue-100 text-blue-700' :
+                                                                    'bg-gray-100 text-gray-700'
+                                                        }`}>
+                                                        {ticket.status.replace('_', ' ')}
+                                                    </span>
                                                 </div>
+                                                <Link
+                                                    href={route('tickets.show', ticket.id)}
+                                                    className="text-sm text-indigo-600 hover:underline font-medium"
+                                                >
+                                                    View Ticket →
+                                                </Link>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+
                         )}
                     </div>
                 </div>

@@ -1,6 +1,19 @@
 import { useForm, Link, usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+
+interface children {
+    id: number;
+    name: string;
+    category_id: number;
+}
+
+interface Category {
+    children: Category | undefined;
+    id: number;
+    name: string;
+    subcategories: children[];
+}
 
 interface SelectOption {
     value: string;
@@ -23,7 +36,22 @@ interface InputProps {
     placeholder?: string;
 }
 
+interface User {
+    name?: string;
+    email?: string;
+    phone?: string;
+    role_id?: number;
+}
+
 export default function TicketForm() {
+    const { auth, categories } = usePage().props as unknown as {
+        auth: { user: User };
+        categories: Category[];
+    };
+
+    const user = auth.user;
+    const [availableSubCategories, setAvailableSubCategories] = useState<children[]>([]);
+
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         email: '',
@@ -31,29 +59,45 @@ export default function TicketForm() {
         subject: '',
         description: '',
         priority: 'medium',
-        category: 'support',
+        category: '',
         sub_category: '',
     });
 
-    interface User {
-        name?: string;
-        email?: string;
-        phone?: string;
-        role_id?: number;
-        // add other properties as needed
-    }
-
-    const { auth } = usePage().props;
-    const user = auth.user as User;
-
     useEffect(() => {
-        if (user && user.role_id === 4) { // Assuming role_id 2 is for users
+        if (user && user.role_id === 4) {
             setData('name', user.name || '');
             setData('email', user.email || '');
             setData('phone', user.phone || '');
         }
     }, [user]);
 
+    useEffect(() => {
+        const selectedCategory = categories.find(
+            (cat) => cat.id.toString() === data.category
+        );
+       if (selectedCategory && selectedCategory.subcategories) {
+            setAvailableSubCategories(selectedCategory.subcategories);
+        } else {
+            setAvailableSubCategories([]);
+        }
+        setData('sub_category', '');
+    }, [data.category]);
+    // Rename subcategory to children in state and logic
+    useEffect(() => {
+        const selectedCategory = categories.find(
+            (cat) => cat.id.toString() === data.category
+        );
+        if (selectedCategory && selectedCategory.children) {
+            setAvailableSubCategories(
+                Array.isArray(selectedCategory.children)
+                    ? selectedCategory.children
+                    : []
+            );
+        } else {
+            setAvailableSubCategories([]);
+        }
+        // setData('children', ''); // Removed: 'children' is not a valid form field
+    }, [data.category]);
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         post(route('tickets.store'));
@@ -112,7 +156,9 @@ export default function TicketForm() {
                                 className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-black"
                                 placeholder="Enter details"
                             />
-                            {errors.description && <div className="text-red-500 text-xs mt-1">{errors.description}</div>}
+                            {errors.description && (
+                                <div className="text-red-500 text-xs mt-1">{errors.description}</div>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -130,20 +176,22 @@ export default function TicketForm() {
                                 label="Category"
                                 value={data.category}
                                 onChange={(e) => setData('category', e.target.value)}
-                                options={[
-                                    { value: 'support', label: 'Support' },
-                                    { value: 'bug', label: 'Bug' },
-                                    { value: 'feature', label: 'Feature Request' },
-                                    { value: 'other', label: 'Other' },
-                                ]}
+                                options={categories.map((category) => ({
+                                    value: category.id.toString(),
+                                    label: category.name,
+                                }))}
                             />
-                            <Input
-                                label="Sub Category"
-                                value={data.sub_category}
-                                onChange={(e) => setData('sub_category', e.target.value)}
-                                error={errors.sub_category}
-                                placeholder="Optional"
-                            />
+                            {availableSubCategories.length > 0 && (
+                                <Select
+                                    label="Sub Category"
+                                    value={data.sub_category}
+                                    onChange={(e) => setData('sub_category', e.target.value)}
+                                    options={availableSubCategories.map((sub) => ({
+                                        value: sub.id.toString(),
+                                        label: sub.name,
+                                    }))}
+                                />
+                            )}
                         </div>
 
                         <div className="pt-4">
@@ -186,6 +234,7 @@ const Select = ({ label, value, onChange, options }: SelectProps) => (
             onChange={onChange}
             className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-black"
         >
+            <option value="">Select {label}</option>
             {options.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                     {opt.label}

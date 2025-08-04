@@ -13,17 +13,23 @@ use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Http;
+use App\Models\Category;
 
 
 
 class TicketController extends Controller
 {
 
-    //
+
     public function index()
     {
         $user = Auth::user();
-        $tickets = Ticket::with(['user'])->where('user_id', Auth::id())->get();
+
+        $tickets = Ticket::with(['user'])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
+
         return Inertia::render('Dashboard', [
             'tickets' => $tickets,
             'user' => $user,
@@ -44,8 +50,13 @@ class TicketController extends Controller
 
     public function create()
     {
-        // Logic to show the form for creating a new ticket
-        return Inertia::render('Tickets/Create');
+        $categories = Category::with('children:id,name,parent_id')
+            ->whereNull('parent_id') // Only top-level (parent) categories
+            ->select('id', 'name')
+            ->get();
+        return Inertia::render('Tickets/Create', [
+            'categories' => $categories,
+        ]);
     }
 
     public function store(Request $request)
