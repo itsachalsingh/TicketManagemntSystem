@@ -1,4 +1,5 @@
-import { useForm, Link } from '@inertiajs/react';
+import { useForm, Link, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
 interface SelectOption {
@@ -34,6 +35,17 @@ export default function TicketForm() {
         sub_category: '',
     });
 
+    const { auth } = usePage().props;
+    const user = auth.user;
+
+    useEffect(() => {
+        if (user) {
+            setData('name', user.name || '');
+            setData('email', user.email || '');
+            setData('phone', user.phone || '');
+        }
+    }, [user]);
+
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         post(route('tickets.store'));
@@ -43,7 +55,6 @@ export default function TicketForm() {
         <AuthenticatedLayout header={<h2 className="text-lg font-semibold text-black">Create Ticket</h2>}>
             <div className="min-h-screen py-8 px-4">
                 <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-lg shadow p-6 md:p-8">
-
                     <div className="flex flex-row items-center justify-between mb-6">
                         <Link
                             href={route('dashboard')}
@@ -55,7 +66,6 @@ export default function TicketForm() {
                     </div>
 
                     <form onSubmit={submit} className="space-y-5 text-black text-sm">
-
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Input
                                 label="Name"
@@ -78,14 +88,12 @@ export default function TicketForm() {
                             />
                         </div>
 
-
                         <Input
                             label="Subject"
                             value={data.subject}
                             onChange={(e) => setData('subject', e.target.value)}
                             error={errors.subject}
                         />
-
 
                         <div>
                             <label className="block font-medium mb-1">Description</label>
@@ -99,14 +107,11 @@ export default function TicketForm() {
                             {errors.description && <div className="text-red-500 text-xs mt-1">{errors.description}</div>}
                         </div>
 
-
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Select
                                 label="Priority"
                                 value={data.priority}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                                    setData('priority', e.target.value)
-                                }
+                                onChange={(e) => setData('priority', e.target.value)}
                                 options={[
                                     { value: 'low', label: 'Low' },
                                     { value: 'medium', label: 'Medium' },
@@ -116,9 +121,7 @@ export default function TicketForm() {
                             <Select
                                 label="Category"
                                 value={data.category}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                                    setData('category', e.target.value)
-                                }
+                                onChange={(e) => setData('category', e.target.value)}
                                 options={[
                                     { value: 'support', label: 'Support' },
                                     { value: 'bug', label: 'Bug' },
@@ -129,14 +132,11 @@ export default function TicketForm() {
                             <Input
                                 label="Sub Category"
                                 value={data.sub_category}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                    setData('sub_category', e.target.value)
-                                }
+                                onChange={(e) => setData('sub_category', e.target.value)}
                                 error={errors.sub_category}
                                 placeholder="Optional"
                             />
                         </div>
-
 
                         <div className="pt-4">
                             <button

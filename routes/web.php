@@ -7,22 +7,26 @@ use Inertia\Inertia;
 use App\Http\Controllers\TicketController;
 
 Route::get('/', function () {
+
     if (auth()->check()) {
+
         $user = auth()->user();
-        // Example: redirect based on role
-        if ($user->role === 'admin') {
+
+
+        if ($user->role_id != '4') {
             return redirect()->route('dashboard');
-        } elseif ($user->role === 'user') {
+        } else {
             return redirect()->route('dashboard');
         }
-        // Add more roles as needed
-    }
-    return Inertia::render('Welcome', [
+    } else {
+        return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
+    }
+
 })->name('home');
 
 

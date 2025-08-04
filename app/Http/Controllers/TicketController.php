@@ -21,9 +21,11 @@ class TicketController extends Controller
     //
     public function index()
     {
+        $user = Auth::user();
         $tickets = Ticket::with(['user'])->where('user_id', Auth::id())->get();
         return Inertia::render('Dashboard', [
             'tickets' => $tickets,
+            'user' => $user,
         ]);
     }
 
