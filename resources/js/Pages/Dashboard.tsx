@@ -1,23 +1,102 @@
+import { Link, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
 
-export default function Dashboard() {
+type Ticket = {
+    id: number;
+    ticket_number: string;
+    subject: string;
+    description: string;
+    status: string;
+};
+
+interface TicketIndexProps {
+    tickets: Ticket[];
+}
+
+export default function TicketIndex({ tickets }: TicketIndexProps) {
+    const [search, setSearch] = useState('');
+    const [filtered, setFiltered] = useState<Ticket[]>(tickets);
+
+    const handleSearch = () => {
+        const term = search.toLowerCase();
+        const result = tickets.filter(t =>
+            t.ticket_number.toLowerCase().includes(term)
+        );
+        setFiltered(result);
+    };
+
     return (
-        <AuthenticatedLayout
+
+         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800">
                     Dashboard
                 </h2>
             }
         >
-            <Head title="Dashboard" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">
-                            You're logged in!
+
+            <div className="p-6 bg-gray-100 min-h-screen">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Search by Ticket Number"
+                                className="border border-gray-300 rounded px-3 py-2 w-full sm:w-64 focus:ring focus:ring-indigo-200"
+                            />
+                            <button
+                                onClick={handleSearch}
+                                className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+                            >
+                                Search
+                            </button>
                         </div>
+                        <Link
+                            href={route('tickets.create')}
+                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                        >
+                            + New Ticket
+                        </Link>
+                    </div>
+
+                    <div className="bg-white shadow rounded-lg p-6">
+                        <h2 className="text-lg font-semibold mb-4">Your Tickets</h2>
+
+                        {filtered.length === 0 ? (
+                            <p className="text-gray-500 text-sm">No tickets found.</p>
+                        ) : (
+                            <div className="grid gap-4">
+                                {filtered.map(ticket => (
+                                    <div key={ticket.id} className="border border-gray-200 rounded-md p-4 hover:shadow transition">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <p className="text-sm text-gray-400">#{ticket.ticket_number}</p>
+                                                <h3 className="text-lg font-medium">{ticket.subject}</h3>
+                                                <p className="text-sm text-gray-600 mt-1">{ticket.description}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                                                    ticket.status === 'open' ? 'bg-green-100 text-green-800' :
+                                                    ticket.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                                                    ticket.status === 'resolved' ? 'bg-blue-100 text-blue-800' :
+                                                    'bg-gray-100 text-gray-800'
+                                                }`}>
+                                                    {ticket.status.replace('_', ' ')}
+                                                </span>
+                                                <div className="mt-2 flex gap-2 text-sm text-indigo-600">
+                                                    <Link href={route('tickets.edit', ticket.id)} className="hover:underline">View</Link>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
