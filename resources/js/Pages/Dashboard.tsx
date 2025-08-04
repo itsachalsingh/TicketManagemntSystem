@@ -8,6 +8,7 @@ type Ticket = {
     subject: string;
     description: string;
     status: string;
+    created_at: string;
 };
 
 interface TicketIndexProps {
@@ -76,7 +77,14 @@ export default function TicketIndex({ tickets }: TicketIndexProps) {
                                             <div>
                                                 <p className="text-sm text-gray-400">#{ticket.ticket_number}</p>
                                                 <h3 className="text-lg font-medium">{ticket.subject}</h3>
-                                                <p className="text-sm text-gray-600 mt-1">{ticket.description}</p>
+                                                {new Date(ticket.created_at).toLocaleDateString('en-GB')}
+                                            </div>
+                                            <div className='flex items-center gap-2'>
+                                                <span className="text-sm text-gray-500">
+                                                    {ticket.description.length > 50
+                                                        ? `${ticket.description.substring(0, 50)}...`
+                                                        : ticket.description}
+                                                </span>
                                             </div>
                                             <div className="text-right">
                                                 <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
@@ -89,7 +97,6 @@ export default function TicketIndex({ tickets }: TicketIndexProps) {
                                                 </span>
                                                 <div className="mt-2 flex gap-2 text-sm text-indigo-600">
                                                     <Link href={route('tickets.edit', ticket.id)} className="hover:underline">View</Link>
-
                                                 </div>
                                             </div>
                                         </div>

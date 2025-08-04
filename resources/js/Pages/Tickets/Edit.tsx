@@ -43,7 +43,7 @@ export default function EditTicketForm() {
 
     return (
         <AuthenticatedLayout header={<h2 className="text-lg font-semibold text-black">Edit Ticket</h2>}>
-            <div className="bg-white min-h-screen py-8 px-4">
+            <div className=" min-h-screen py-8 px-4">
                 <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-lg shadow p-6 md:p-8">
 
                     {/* Back Button */}
@@ -81,7 +81,6 @@ export default function EditTicketForm() {
                             />
                         </div>
 
-                        {/* Subject */}
                         <Input
                             label="Subject"
                             value={data.subject}
@@ -89,7 +88,6 @@ export default function EditTicketForm() {
                             error={errors.subject}
                         />
 
-                        {/* Description */}
                         <div>
                             <label className="block font-medium mb-1">Description</label>
                             <textarea
@@ -102,7 +100,6 @@ export default function EditTicketForm() {
                             {errors.description && <div className="text-red-500 text-xs mt-1">{errors.description}</div>}
                         </div>
 
-                        {/* Priority, Category, Sub Category */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Select
                                 label="Priority"
@@ -119,10 +116,7 @@ export default function EditTicketForm() {
                                 value={data.category}
                                 onChange={(e) => setData('category', e.target.value)}
                                 options={[
-                                    { value: 'support', label: 'Support' },
-                                    { value: 'bug', label: 'Bug' },
-                                    { value: 'feature', label: 'Feature Request' },
-                                    { value: 'other', label: 'Other' },
+                                    { value: 'support', label: 'Support' }
                                 ]}
                             />
                             <Input

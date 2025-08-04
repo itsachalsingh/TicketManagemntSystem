@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { useForm, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
 interface SelectOption {
@@ -41,12 +41,21 @@ export default function TicketForm() {
 
     return (
         <AuthenticatedLayout header={<h2 className="text-lg font-semibold text-black">Create Ticket</h2>}>
-            <div className="bg-white min-h-screen py-8 px-4">
+            <div className="min-h-screen py-8 px-4">
                 <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-lg shadow p-6 md:p-8">
-                    <h1 className="text-xl font-bold text-black mb-6">Submit a Ticket</h1>
+
+                    <div className="flex flex-row items-center justify-between mb-6">
+                        <Link
+                            href={route('dashboard')}
+                            className="inline-flex items-center text-sm text-gray-600 hover:text-black"
+                        >
+                            <span className="mr-2 text-lg">&larr;</span>
+                            Back to Tickets
+                        </Link>
+                    </div>
 
                     <form onSubmit={submit} className="space-y-5 text-black text-sm">
-                        {/* Name, Email, Phone */}
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Input
                                 label="Name"
@@ -69,7 +78,7 @@ export default function TicketForm() {
                             />
                         </div>
 
-                        {/* Subject */}
+
                         <Input
                             label="Subject"
                             value={data.subject}
@@ -77,7 +86,7 @@ export default function TicketForm() {
                             error={errors.subject}
                         />
 
-                        {/* Description */}
+
                         <div>
                             <label className="block font-medium mb-1">Description</label>
                             <textarea
@@ -90,7 +99,7 @@ export default function TicketForm() {
                             {errors.description && <div className="text-red-500 text-xs mt-1">{errors.description}</div>}
                         </div>
 
-                        {/* Priority, Category, Sub Category */}
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Select
                                 label="Priority"
@@ -128,7 +137,7 @@ export default function TicketForm() {
                             />
                         </div>
 
-                        {/* Submit */}
+
                         <div className="pt-4">
                             <button
                                 type="submit"
