@@ -185,7 +185,7 @@ export default function Welcome({
         <div className="relative z-10 max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <div>
             <h1 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
-              Welcome to the <span className="text-blue-400"><br />UCC Grievance Cell</span>
+              Welcome to the <span className="text-blue-400"><br />Grievance Cell</span>
             </h1>
             <p className="text-lg text-gray-300 mb-6">
               Streamline issue tracking, improve efficiency, and monitor resolutions with ease.
