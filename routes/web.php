@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\TicketCommentController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/', function () {
 
@@ -15,10 +16,12 @@ Route::get('/', function () {
         $user = auth()->user();
 
 
-        if ($user->role_id != '4') {
+        if ($user->role_id == '4') {
+            return redirect()->route('dashboard');
+        } elseif ($user->role_id == '3') {
             return redirect()->route('dashboard');
         } else {
-            return redirect()->route('dashboard');
+            return redirect()->route('admin.dashboard');
         }
     } else {
         return Inertia::render('Welcome', [
@@ -39,7 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'not.admin'])->group(function () {
     Route::get('/dashboard', [TicketController::class, 'index'])->name('dashboard');
     Route::get('/tickets/create', [TicketController::class, 'create'])->name('tickets.create');
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
@@ -47,15 +50,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update');
     Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
+    Route::post('/comments', [TicketCommentController::class, 'store'])->name('comments.store');
+
 });
 
 Route::get('login', function () {
     return redirect()->route('home');
 })->name('login');
 
-Route::resource('categories', CategoryController::class);
 
-Route::post('/comments', [TicketCommentController::class, 'store'])->name('comments.store');
+Route::middleware(['auth', 'verified', 'only.admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::resource('categories', CategoryController::class);
+
+});
+
+
+
 
 require __DIR__.'/auth.php';
 
