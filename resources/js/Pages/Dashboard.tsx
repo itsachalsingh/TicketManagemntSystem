@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
@@ -36,6 +36,8 @@ export default function TicketIndex({ tickets }: TicketIndexProps) {
                 </h2>
             }
         >
+
+            <Head title="Dashboard" />
 
 
             <div className="p-6 bg-gray-100 min-h-screen">

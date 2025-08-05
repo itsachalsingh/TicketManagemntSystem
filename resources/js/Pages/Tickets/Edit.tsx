@@ -1,4 +1,4 @@
-import { useForm, usePage, Link } from '@inertiajs/react';
+import { useForm, usePage, Link , Head} from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
 interface SelectOption {
@@ -43,6 +43,7 @@ export default function EditTicketForm() {
 
     return (
         <AuthenticatedLayout header={<h2 className="text-lg font-semibold text-black">Edit Ticket</h2>}>
+            <Head title="Edit Ticket" />
             <div className=" min-h-screen py-8 px-4">
                 <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-lg shadow p-6 md:p-8">
 

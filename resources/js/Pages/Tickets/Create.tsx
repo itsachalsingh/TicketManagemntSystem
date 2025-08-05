@@ -1,4 +1,4 @@
-import { useForm, Link, usePage } from '@inertiajs/react';
+import { useForm, Link, usePage, Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
@@ -105,6 +105,7 @@ export default function TicketForm() {
 
     return (
         <AuthenticatedLayout header={<h2 className="text-lg font-semibold text-black">Create Ticket</h2>}>
+            <Head title="Create Ticket" />
             <div className="min-h-screen py-8 px-4">
                 <div className="max-w-3xl mx-auto bg-white border border-gray-200 rounded-lg shadow p-6 md:p-8">
                     <div className="flex flex-row items-center justify-between mb-6">
