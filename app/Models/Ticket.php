@@ -22,7 +22,10 @@ class Ticket extends Model
         'source',
         'ip_address',
         'user_agent',
-        'status'
+        'status',
+        'priority',
+        'sub_category_id',
+        'created_by',
     ];
 
     protected $casts = [
@@ -53,5 +56,43 @@ class Ticket extends Model
         });
 
     }
+
+    public function comments()
+    {
+        return $this->hasMany(TicketComment::class)->latest();
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class,'category_id');
+    }
+
+    public function subCategory()
+    {
+        return $this->belongsTo(Category::class, 'sub_category_id');
+    }
+
+    public function getStatusLabelAttribute()
+    {
+        return match ($this->status) {
+            'open' => 'Open',
+            'in_progress' => 'In Progress',
+            'resolved' => 'Resolved',
+            'closed' => 'Closed',
+            'reopened' => 'Reopened',
+            default => 'Unknown',
+        };
+    }
+
+    public function getPriorityLabelAttribute()
+    {
+        return match ($this->priority) {
+            'low' => 'Low',
+            'medium' => 'Medium',
+            'high' => 'High',
+            default => 'Unknown',
+        };
+    }
+
 }
 

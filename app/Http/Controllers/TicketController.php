@@ -25,26 +25,53 @@ class TicketController extends Controller
     {
         $user = Auth::user();
 
-        $tickets = Ticket::with(['user'])
+        if($user->role_id == 4) {
+            $tickets = Ticket::with(['user'])
             ->where('user_id', $user->id)
             ->latest()
             ->get();
 
-        return Inertia::render('Dashboard', [
-            'tickets' => $tickets,
-            'user' => $user,
-        ]);
+            return Inertia::render('Dashboard', [
+                'tickets' => $tickets,
+                'user' => $user,
+            ]);
+        } elseif ($user->role_id == 3) {
+            $tickets = Ticket::with(['user', 'assignedUser'])
+                ->where(function ($query) use ($user) {
+                    $query->where('created_by', $user->id)
+                        ->orWhere('assigned_to', $user->id);
+                })
+                ->latest()
+                ->get();
+
+            return Inertia::render('Dashboard', [
+                'tickets' => $tickets,
+                'user' => $user,
+            ]);
+        } else {
+            $tickets = Ticket::with(['user', 'assignedUser'])
+            ->latest()
+            ->get();
+
+            return Inertia::render('Dashboard', [
+                'tickets' => $tickets,
+                'user' => $user,
+            ]);
+        }
+
     }
 
     public function show($id)
     {
-        // Logic to display a specific ticket
-        $ticket = Ticket::with(['user', 'assignedUser'])->find($id);
+        $ticket = Ticket::with(['user', 'assignedUser', 'comments.user','category', 'subCategory', 'assignedUser.role'])->find($id);
+
         if (!$ticket) {
             throw new ModelNotFoundException('Ticket not found');
         }
+
         return Inertia::render('Tickets/Show', [
             'ticket' => $ticket,
+            'comments' => $ticket->comments,
         ]);
     }
 
@@ -145,14 +172,15 @@ class TicketController extends Controller
             'subject' => $validated['subject'],
             'description' => $validated['description'],
             'priority' => $validated['priority'],
-            'category' => $validated['category'],
-            'sub_category' => $validated['sub_category'] ?? null,
-            'assigned_to' => '2',
+            'category_id' => $validated['category'],
+            'sub_category_id' => $validated['sub_category'] ?? null,
+            'assigned_to' => '7',
             'source' => 'web',
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'status' => 'open',
             'due_date' => now()->addDays(3),
+            'created_by' => $authUser->id,
         ]);
 
 

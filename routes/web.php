@@ -5,6 +5,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\TicketCommentController;
 
 Route::get('/', function () {
 
@@ -52,6 +54,8 @@ Route::get('login', function () {
 })->name('login');
 
 Route::resource('categories', CategoryController::class);
+
+Route::post('/comments', [TicketCommentController::class, 'store'])->name('comments.store');
 
 require __DIR__.'/auth.php';
 
