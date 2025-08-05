@@ -8,6 +8,7 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\TicketCommentController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
 
@@ -50,7 +51,7 @@ Route::middleware(['auth', 'verified', 'not.admin'])->group(function () {
     Route::put('/tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update');
     Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
-    Route::post('/comments', [TicketCommentController::class, 'store'])->name('comments.store');
+
 
 });
 
@@ -62,11 +63,14 @@ Route::get('login', function () {
 Route::middleware(['auth', 'verified', 'only.admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::resource('categories', CategoryController::class);
+    Route::resource('users', UserController::class);
+    Route::get('/tickets', [TicketController::class, 'adminIndex'])->name('admin.tickets.index');
+    Route::get('/tickets/{ticket}', [TicketController::class, 'adminShow'])->name('admin.tickets.show');
 
 });
 
 
-
+Route::post('/comments', [TicketCommentController::class, 'store'])->name('comments.store');
 
 require __DIR__.'/auth.php';
 

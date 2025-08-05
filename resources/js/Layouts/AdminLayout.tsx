@@ -18,15 +18,19 @@ const AdminLayout: React.FC<Props> = ({ children }) => {
                 <div>
                     <div className="text-3xl font-bold p-6">Grievance Cell</div>
                     <nav className="space-y-2 px-6">
-                        <Link href="/dashboard" className="block py-2 hover:text-gray-300">Dashboard</Link>
-                        <Link href="/officers" className="block py-2 hover:text-gray-300">Officer Management</Link>
-                        <Link href="/departments" className="block py-2 hover:text-gray-300">Departments</Link>
-                        <Link href="/roles" className="block py-2 hover:text-gray-300">Roles & Permissions</Link>
-                        <Link href="/settings" className="block py-2 hover:text-gray-300">Settings</Link>
+                        <Link href="/admin/dashboard" className="block py-2 hover:text-gray-300">Dashboard</Link>
+                        <Link href="/admin/users" className="block py-2 hover:text-gray-300">User Management</Link>
+                        <Link href="/admin/tickets" className="block py-2 hover:text-gray-300">Ticket Management</Link>
                     </nav>
                 </div>
-                <div className="p-6 text-sm text-gray-400">© 2025 HRM Inc.</div>
+
+                {/* 🛠️ FIXED Footer */}
+                <div className="p-6 text-sm text-gray-400 space-y-1 text-center">
+                    <p>© 2025 Ticket Management System. All rights reserved.</p>
+                    <p>Developed by <a href="#" className="hover:underline">Achal Singh</a></p>
+                </div>
             </aside>
+
 
             {/* Main content */}
             <div className="flex-1 flex flex-col">
@@ -74,7 +78,7 @@ const AdminLayout: React.FC<Props> = ({ children }) => {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 p-6 bg-white overflow-auto">
+                <main className="flex-1 p-6  overflow-auto">
                     {children}
                 </main>
             </div>

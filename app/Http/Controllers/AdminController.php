@@ -25,6 +25,20 @@ class AdminController extends Controller
 
         return Inertia::render('Admin/Dashboard', [
             'tickets' => $tickets,
+            'latestTickets' => $tickets->take(5),
+            'newUsersCount' => User::whereDate('created_at', now())->count(),
+            'totalTickets' => $tickets->count(),
+            'ticketStats' => [
+                'open' => $tickets->where('status', 'open')->count(),
+                'in_progress' => $tickets->where('status', 'in_progress')->count(),
+                'resolved' => $tickets->where('status', 'resolved')->count(),
+                'pending' => $tickets->where('status', 'pending')->count(),
+            ],
+            'priorityStats' => [
+                'high' => $tickets->where('priority', 'high')->count(),
+                'medium' => $tickets->where('priority', 'medium')->count(),
+                'low' => $tickets->where('priority', 'low')->count(),
+            ],
             'users' => $all_users
         ]);
     }

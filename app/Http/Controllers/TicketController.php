@@ -278,4 +278,30 @@ class TicketController extends Controller
 
         return redirect()->route('tickets.show', $ticket->id);
     }
+
+    public function adminIndex()
+    {
+       $tickets = Ticket::with(['user', 'assignedUser'])
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return Inertia::render('Admin/Tickets/Index', [
+            'tickets' => $tickets,
+        ]);
+    }
+
+    public function adminShow($id)
+    {
+        $ticket = Ticket::with(['user', 'assignedUser', 'comments.user','category', 'subCategory', 'assignedUser.role'])->find($id);
+
+        if (!$ticket) {
+            throw new ModelNotFoundException('Ticket not found');
+        }
+
+        return Inertia::render('Admin/Tickets/AdminTicketShow', [
+            'ticket' => $ticket,
+            'comments' => $ticket->comments,
+        ]);
+    }
 }
