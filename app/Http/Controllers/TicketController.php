@@ -78,7 +78,7 @@ class TicketController extends Controller
     public function create()
     {
         $categories = Category::with('children:id,name,parent_id')
-            ->whereNull('parent_id') // Only top-level (parent) categories
+            ->whereNull('parent_id')
             ->select('id', 'name')
             ->get();
         return Inertia::render('Tickets/Create', [
@@ -90,7 +90,7 @@ class TicketController extends Controller
     {
         $authUser = Auth::user();
 
-        // Validation rules
+
         $validated = Validator::make($request->all(), [
             'name' => 'required|string|max:100',
             'email' => 'required|email|max:150',
@@ -166,7 +166,21 @@ class TicketController extends Controller
                 }
         }
 
-        // Create the ticket
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $filePath = $file->store('tickets', 's3');
+            $fileId = \App\Models\File::create([
+                'user_id' => $userId,
+                'path' => $filePath,
+                'original_name' => $file->getClientOriginalName(),
+                'mime_type' => $file->getClientMimeType(),
+            ])->id;
+        } else {
+            $fileId = null;
+        }
+
+
         $ticket = \App\Models\Ticket::create([
             'user_id' => $userId,
             'subject' => $validated['subject'],
@@ -181,6 +195,7 @@ class TicketController extends Controller
             'status' => 'open',
             'due_date' => now()->addDays(3),
             'created_by' => $authUser->id,
+            'file_id' => $fileId,
         ]);
 
 
@@ -220,7 +235,7 @@ class TicketController extends Controller
 
     public function edit($id)
     {
-        // Logic to show the form for editing a specific ticket
+
         $ticket = Ticket::with(['user', 'assignedUser'])->find($id);
         if (!$ticket) {
             throw new ModelNotFoundException('Ticket not found');
@@ -232,7 +247,7 @@ class TicketController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Logic to update a specific ticket
+
         $ticket = Ticket::with(['user', 'assignedUser'])->find($id);
         if (!$ticket) {
             throw new ModelNotFoundException('Ticket not found');
@@ -251,7 +266,7 @@ class TicketController extends Controller
 
     public function destroy($id)
     {
-        // Logic to delete a specific ticket
+
         $ticket = Ticket::with(['user', 'assignedUser'])->find($id);
         if (!$ticket) {
             throw new ModelNotFoundException('Ticket not found');
@@ -264,7 +279,7 @@ class TicketController extends Controller
 
     public function assign(Request $request, $id)
     {
-        // Logic to assign a ticket to a user
+
         $ticket = Ticket::find($id);
         if (!$ticket) {
             throw new ModelNotFoundException('Ticket not found');
