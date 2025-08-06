@@ -47,25 +47,35 @@ interface Ticket {
     closed_at?: string;
     comments: TicketComment[];
     role?: Role;
+    assigned_to?: User;
 }
 
 interface ShowProps {
     ticket: Ticket;
     comments: TicketComment[];
+    users?: User[];
 }
 
-const AdminTicketShow = ({ ticket, comments }: ShowProps) => {
+const AdminTicketShow = ({ ticket, comments, users = [] }: ShowProps) => {
     const { auth } = usePage().props as { auth: { user: User } };
 
-    const { data, setData, post, processing, reset, errors } = useForm({
+    const { data, setData, post, patch, processing, reset, errors } = useForm({
         message: '',
         ticket_id: ticket.id,
+        status: ticket.status || 'open',
+        assigned_user_id: ticket.assigned_user?.id || '',
     });
 
-    const submit = (e: React.FormEvent) => {
+    const submitComment = (e: React.FormEvent) => {
         e.preventDefault();
         post(route('comments.store'), {
             onSuccess: () => reset('message'),
+        });
+    };
+
+    const updateTicketDetails = () => {
+        patch(route('admin.tickets.update-status', ticket.id), {
+            preserveScroll: true,
         });
     };
 
@@ -87,7 +97,6 @@ const AdminTicketShow = ({ ticket, comments }: ShowProps) => {
             <Head title={`Ticket: ${ticket.title}`} />
 
             <div className="p-6 max-w-7xl mx-auto space-y-8">
-                {/* Header */}
                 <div className="flex justify-between items-center">
                     <Link
                         href={route('admin.tickets.index')}
@@ -99,94 +108,103 @@ const AdminTicketShow = ({ ticket, comments }: ShowProps) => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Left: Ticket Info */}
+
                     <div className="md:col-span-2">
                         <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-md rounded-2xl p-8 space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-
-
-                            </div>
                             <Detail label="Title" value={ticket.subject} isFull />
                             <Detail label="Description" value={ticket.description} isFull isPre />
                         </div>
                     </div>
 
-                    {/* Right: Assigned User */}
-                    <div>
-                        <div className="bg-white border border-gray-200 shadow rounded-2xl p-8 h-full flex flex-col justify-center">
-                            {ticket.assigned_user ? (
-                                <div className="space-y-2">
-                                    <Detail label="Ticket ID" value={ticket.ticket_number} />
-                                    <Detail
-                                        label="Category"
-                                        value={
-                                            ticket.category
-                                                ? ticket.sub_category
-                                                    ? `${ticket.category.name} - ${ticket.sub_category.name}`
-                                                    : ticket.category.name
-                                                : '—'
-                                        }
-                                    />
-                                    <div className="grid grid-cols-2 gap-4 mt-4">
-                                        <div>
-                                            <p className="text-gray-500">Priority</p>
-                                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide ${getPriorityStyle(ticket.priority)}`}>
-                                                {ticket.priority.toUpperCase()}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <p className="text-gray-500">Status</p>
-                                            <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
-                                                {ticket.status ? ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1) : '—'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    <div className="flex items-center space-x-3 mb-2">
-                                        <div className="w-10 h-10 rounded-full bg-gray-200 border" />
-                                        <span className="font-semibold text-gray-800">—</span>
-                                    </div>
-                                    <Detail label="Role" value="—" />
-                                    <Detail label="Email" value="—" />
-                                </div>
-                            )}
-                            <div className="grid grid-cols-2 gap-4 mt-4">
 
+                    <div>
+                        <div className="bg-white border border-gray-200 shadow rounded-2xl p-8 flex flex-col justify-between h-full space-y-4">
+                            <Detail label="Ticket ID" value={ticket.ticket_number} />
+                            <Detail
+                                label="Category"
+                                value={
+                                    ticket.category
+                                        ? ticket.sub_category
+                                            ? `${ticket.category.name} - ${ticket.sub_category.name}`
+                                            : ticket.category.name
+                                        : '—'
+                                }
+                            />
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <p className="text-gray-500">Created Date</p>
-                                    <p className="text-gray-800">{new Date(ticket.created_at).toLocaleDateString()}</p>
+                                    <p className="text-gray-500 text-sm">Priority</p>
+                                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide ${getPriorityStyle(ticket.priority)}`}>
+                                        {ticket.priority.toUpperCase()}
+                                    </span>
                                 </div>
                                 <div>
-                                    <p className="text-gray-500">Closed Date</p>
-                                    <p className="text-gray-800">{ticket.closed_at ? new Date(ticket.closed_at).toLocaleDateString() : '—'}</p>
+                                    <label className="text-gray-500 text-sm">Status</label>
+                                    <select
+                                        className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                                        value={data.status}
+                                        onChange={(e) => setData('status', e.target.value)}
+                                    >
+                                        <option value="open">Open</option>
+                                        <option value="responded">Responded</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="resolved">Resolved</option>
+                                        <option value="closed">Closed</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 mt-4">
-                                <div className='mt-4'>
-                                    <p className="text-gray-500">Created By</p>
-                                    <p className="text-gray-800">{ticket.user?.name || '—'}</p>
-                                </div>
-                                <div className='mt-4'>
-                                    <p className="text-gray-500">Assigned To</p>
-                                    <p className="text-gray-800">{ticket.assigned_user?.name || 'Unassigned'}</p>
-                                </div>
+
+                            <div>
+                                <label className="text-gray-500 text-sm">Assign To</label>
+                                <select
+                                    className="mt-1 w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                                    value={data.assigned_user_id}
+                                    onChange={(e) => setData('assigned_user_id', e.target.value)}
+                                >
+                                    <option value="">-- Unassigned --</option>
+                                    {Array.isArray(users) && users.map((user) => (
+                                        <option key={user.id} value={user.id}>
+                                            {user.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <Detail label="Created Date" value={new Date(ticket.created_at).toLocaleDateString()} />
+                                <Detail label="Closed Date" value={ticket.closed_at ? new Date(ticket.closed_at).toLocaleDateString() : '—'} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Detail label="Created By" value={ticket.user?.name || '—'} />
+                                <Detail label="Assigned To" value={ticket.assigned_to?.name || 'Unassigned'} />
+                            </div>
+
+                            <button
+                                className="bg-indigo-600 text-white text-sm px-4 py-2 rounded hover:bg-indigo-700 transition mt-4"
+                                onClick={updateTicketDetails}
+                                disabled={processing}
+                            >
+                                Save Changes
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Discussion / Comments */}
+                {/* Discussion */}
                 <div className="bg-white border border-gray-200 shadow rounded-2xl p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Discussion</h3>
                     {comments.length > 0 ? (
                         <div className="space-y-4">
-                            {comments.map(comment => (
-                                <div key={comment.id} className="border border-gray-200 rounded p-4 bg-gray-50">
+                            {comments.map((comment, index) => (
+                                <div
+                                    key={comment.id}
+                                    className={`border border-gray-200 rounded p-4 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-indigo-50'
+                                        }`}
+                                >
                                     <div className="text-sm font-medium text-gray-800">{comment.user.name}</div>
                                     <div className="text-sm text-gray-700 mt-1">{comment.message}</div>
-                                    <div className="text-xs text-gray-400 mt-1">{new Date(comment.created_at).toLocaleString()}</div>
+                                    <div className="text-xs text-gray-400 mt-1">
+                                        {new Date(comment.created_at).toLocaleString()}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -194,7 +212,7 @@ const AdminTicketShow = ({ ticket, comments }: ShowProps) => {
                         <p className="text-sm text-gray-500 mb-4">No comments yet.</p>
                     )}
 
-                    <form onSubmit={submit} className="mt-6 space-y-2">
+                    <form onSubmit={submitComment} className="mt-6 space-y-2">
                         <textarea
                             value={data.message}
                             onChange={(e) => setData('message', e.target.value)}
@@ -218,7 +236,6 @@ const AdminTicketShow = ({ ticket, comments }: ShowProps) => {
 
 export default AdminTicketShow;
 
-// Reusable component
 function Detail({
     label,
     value,

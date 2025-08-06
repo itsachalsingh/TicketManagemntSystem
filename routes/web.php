@@ -66,6 +66,8 @@ Route::middleware(['auth', 'verified', 'only.admin'])->prefix('admin')->group(fu
     Route::resource('users', UserController::class);
     Route::get('/tickets', [TicketController::class, 'adminIndex'])->name('admin.tickets.index');
     Route::get('/tickets/{ticket}', [TicketController::class, 'adminShow'])->name('admin.tickets.show');
+    Route::patch('/admin/tickets/{ticket}/update-status', [TicketController::class, 'updateStatus'])->name('admin.tickets.update-status');
+
 
 });
 

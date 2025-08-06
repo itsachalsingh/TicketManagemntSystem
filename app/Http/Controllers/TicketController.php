@@ -299,9 +299,31 @@ class TicketController extends Controller
             throw new ModelNotFoundException('Ticket not found');
         }
 
+        $users = User::whereNotIn('role_id', [1, 4])->get();
+
         return Inertia::render('Admin/Tickets/AdminTicketShow', [
             'ticket' => $ticket,
             'comments' => $ticket->comments,
+            'users' => $users,
         ]);
+
+
+    }
+
+    public function updateStatus(Request $request, Ticket $ticket)
+    {
+        $ticket->status = $request->status;
+        $ticket->assigned_to = $request->assigned_user_id;
+        if($ticket->status === 'closed') {
+            $ticket->closed_at = now();
+        } elseif ($ticket->status === 'resolved') {
+            $ticket->resolved_at = now();
+        } else {
+            $ticket->resolved_at = null;
+            $ticket->closed_at = null;
+        }
+        $ticket->save();
+
+        return back()->with('success', 'Ticket updated successfully.');
     }
 }
