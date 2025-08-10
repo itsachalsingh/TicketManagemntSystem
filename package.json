@@ -27,6 +27,7 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
+        "browser-image-compression": "^2.0.2",
         "react-toastify": "^11.0.5",
         "zod": "^4.0.14"
     }

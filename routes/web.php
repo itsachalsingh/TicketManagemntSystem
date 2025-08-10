@@ -37,6 +37,7 @@ Route::get('/', function () {
 
 
 
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -45,12 +46,12 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'verified', 'not.admin'])->group(function () {
     Route::get('/dashboard', [TicketController::class, 'index'])->name('dashboard');
-    Route::get('/tickets/create', [TicketController::class, 'create'])->name('tickets.create');
-    Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
-    Route::get('/tickets/{ticket}/edit', [TicketController::class, 'edit'])->name('tickets.edit');
-    Route::put('/tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update');
-    Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
-    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
+    Route::get('/ticket/create', [TicketController::class, 'create'])->name('tickets.create');
+    Route::post('/ticket', [TicketController::class, 'store'])->name('tickets.store');
+    Route::get('/ticket/{ticket}/edit', [TicketController::class, 'edit'])->name('tickets.edit');
+    Route::put('/ticket/{ticket}', [TicketController::class, 'update'])->name('tickets.update');
+    Route::delete('/ticket/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
+    Route::get('/ticket/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
 
 
 });

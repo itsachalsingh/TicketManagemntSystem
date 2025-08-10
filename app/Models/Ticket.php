@@ -72,6 +72,12 @@ class Ticket extends Model
         return $this->belongsTo(Category::class, 'sub_category_id');
     }
 
+    public function attachments()
+    {
+        return $this->hasMany(TicketAttachment::class)->latest();
+    }
+
+
     public function getStatusLabelAttribute()
     {
         return match ($this->status) {
