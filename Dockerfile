@@ -2,50 +2,20 @@
 FROM node:20-alpine AS frontend
 WORKDIR /app
 
-# Install deps first (better caching)
+# Install deps first (best caching)
 COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
-RUN if [ -f package-lock.json ]; then npm ci; \
+RUN if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; \
     elif [ -f pnpm-lock.yaml ]; then corepack enable && pnpm i --frozen-lockfile; \
     elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-    else npm i; fi
+    else npm i --no-audit --no-fund; fi
 
-# Copy only what's needed for Vite to build
-COPY vite.config.* ./
+# Copy Vite/Tailwind configs and source needed for build
+COPY vite.config.* postcss.config.* tailwind.config.* tsconfig*.json jsconfig*.json ./
 COPY resources ./resources
 COPY public ./public
 
-# Build to /app/dist (we’ll copy only the built /public/build)
+# If your build references env vars like import.meta.env.VITE_APP_URL, set a default
+ENV VITE_APP_URL=http://localhost
+
+# Build (outputs to public/build by default via laravel-vite-plugin)
 RUN npm run build
-
-# ---------- Stage 2: PHP + Composer + Runtime ----------
-FROM php:8.2-cli-alpine AS app
-WORKDIR /var/www/html
-
-# System packages & PHP extensions
-RUN apk add --no-cache git unzip libpq postgresql-dev icu-dev oniguruma-dev libzip-dev \
-    && docker-php-ext-configure intl \
-    && docker-php-ext-install intl bcmath pdo pdo_pgsql
-
-# Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# App dependencies (composer first for layer caching)
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-ansi --no-progress
-
-# Copy the full application
-COPY . .
-
-# Copy built frontend assets from Stage 1 into Laravel's public/build
-# (Vite outputs to public/build by default; if you changed it, adjust here)
-COPY --from=frontend /app/public/build ./public/build
-
-# Make the startup script executable
-COPY ./entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Render provides $PORT. Fallback to 8080 locally.
-ENV PORT=8080
-
-EXPOSE 8080
-ENTRYPOINT ["/entrypoint.sh"]
