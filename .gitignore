@@ -13,7 +13,7 @@
 /.zed
 /auth.json
 /node_modules
-/public/build
+# /public/build
 /public/hot
 /public/storage
 /storage/*.key
@@ -22,9 +22,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-package-lock.json
+
 yarn-error.log
 yarn.lock
 npm-debug.log
-composer.lock
+
 phpunit.xml
