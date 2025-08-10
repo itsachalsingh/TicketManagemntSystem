@@ -36,7 +36,18 @@ Route::get('/', function () {
 })->name('home');
 
 
-
+Route::get('/dashboard', function () {
+    if (auth()->check()) {
+        $user = auth()->user();
+        if ($user->role_id == '4' || $user->role_id == '3') {
+            return redirect()->route('dashboard');
+        } else {
+            return redirect()->route('admin.dashboard');
+        }
+    } else {
+        return redirect()->route('home');
+    }
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -28,19 +28,28 @@ RUN apk add --no-cache git unzip libpq postgresql-dev icu-dev oniguruma-dev libz
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
-# ✅ Copy the entire app first so artisan exists
+# Copy app first so artisan exists for composer scripts
 COPY . .
 
-# Install PHP deps (now artisan is present, scripts can run)
+# Install PHP deps
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-ansi --no-progress
 
-# Copy built frontend assets from stage 1
+# Copy built frontend assets
 COPY --from=frontend /app/public/build ./public/build
+
+# Make sure Laravel can write caches
+RUN mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache \
+ && chmod -R ug+rwX storage bootstrap/cache
 
 # Entrypoint
 COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-ENV PORT=8080
+# Defaults (Render can override these in Environment)
+ENV PORT=8080 \
+    RUN_MIGRATIONS=true \
+    RUN_SEEDERS=false \
+    SEED_CLASSES="RoleSeeder AdminSeeder"
+
 EXPOSE 8080
 ENTRYPOINT ["/entrypoint.sh"]

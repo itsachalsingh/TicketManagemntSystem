@@ -36,15 +36,20 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Check if the user is an admin
-        if (auth()->user()->role_id == '1') {
-            return redirect()->intended(route('admin.dashboard', absolute: false));
-        } elseif (auth()->user()->role_id == '2') {
-            return redirect()->intended(route('admin.dashboard', absolute: false));
-        } elseif (auth()->user()->role_id == '3') {
-            return redirect()->intended(route('dashboard', absolute: false));
-        } elseif (auth()->user()->role_id == '4') {
-             return redirect()->intended(route('dashboard', absolute: false));
+        // Check user role and redirect accordingly
+        $roleId = auth()->user()->role_id;
+
+        if ($roleId == '1') {
+            return redirect()->intended('/admin/dashboard');
+        } elseif ($roleId == '2') {
+            return redirect()->intended('/admin/dashboard');
+        } elseif ($roleId == '3') {
+            return redirect()->intended('/dashboard');
+        } elseif ($roleId == '4') {
+            return redirect()->intended('/dashboard');
+        } else {
+            // Default fallback if role_id is not recognized
+            return redirect()->intended('/');
         }
 
 
