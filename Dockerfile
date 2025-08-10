@@ -20,25 +20,24 @@ RUN npm run build  # outputs to public/build
 FROM php:8.2-cli-alpine AS app
 WORKDIR /var/www/html
 
-# System packages & PHP extensions (Postgres)
 RUN apk add --no-cache git unzip libpq postgresql-dev icu-dev oniguruma-dev libzip-dev \
     && docker-php-ext-configure intl \
     && docker-php-ext-install intl bcmath pdo pdo_pgsql
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
-# Install PHP deps first for caching
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-ansi --no-progress
-
-# Copy the app
+# ✅ Copy the entire app first so artisan exists
 COPY . .
 
-# Copy built assets from the frontend stage
+# Install PHP deps (now artisan is present, scripts can run)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-ansi --no-progress
+
+# Copy built frontend assets from stage 1
 COPY --from=frontend /app/public/build ./public/build
 
-# Entrypoint to boot Laravel
+# Entrypoint
 COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
