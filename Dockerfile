@@ -49,7 +49,7 @@ RUN chmod +x /entrypoint.sh
 ENV PORT=8080 \
     RUN_MIGRATIONS=true \
     RUN_SEEDERS=false \
-    SEED_CLASSES="RoleSeeder AdminSeeder"
+    SEED_CLASSES="RoleSeeder AdminSeeder CategoriesTableSeeder"
 
 EXPOSE 8080
 ENTRYPOINT ["/entrypoint.sh"]
